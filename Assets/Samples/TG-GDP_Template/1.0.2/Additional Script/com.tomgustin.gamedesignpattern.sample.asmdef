@@ -1,0 +1,15 @@
+{
+    "name": "com.tomgustin.gamedesignpattern.sample",
+    "references": [
+        "GUID:6e94de68aa7386d45abf72792ea13462"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

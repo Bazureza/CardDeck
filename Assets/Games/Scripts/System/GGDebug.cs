@@ -1,7 +1,7 @@
 ﻿using GuraGames.Enums;
 using UnityEngine;
 
-namespace GuraGames.System
+namespace GuraGames.GameSystem
 {
     public static class GGDebug
     {

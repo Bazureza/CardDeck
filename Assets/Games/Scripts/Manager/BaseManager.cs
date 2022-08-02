@@ -1,4 +1,4 @@
-﻿using GuraGames.System;
+﻿using GuraGames.GameSystem;
 using GuraGames.Enums;
 using UnityEngine;
 
