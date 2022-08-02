@@ -11,12 +11,7 @@ namespace GuraGames.Manager
         protected override void OnAwake()
         {
             base.OnAwake();
-            GGDebug.Activate(false);
-
-            Console("");
-            Console("Test", DebugType.Error);
-            Console(1);
-            Console(2.3f);
+            GGDebug.Activate(true);
         }
     }
 }

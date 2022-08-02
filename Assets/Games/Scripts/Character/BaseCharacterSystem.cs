@@ -1,4 +1,5 @@
-﻿using Sirenix.OdinInspector;
+﻿using GuraGames.GameSystem;
+using Sirenix.OdinInspector;
 using System.Collections;
 using System.Collections.Generic;
 using TomGustin.GameDesignPattern;
@@ -25,8 +26,14 @@ namespace GuraGames.Character
         protected virtual void OnMove(Vector3 move_position)
         {
             var nearest = aStar.GetNearest(move_position);
-            print("Move to: " + (Vector3)nearest.node.position);
-            print(nearest.node.Walkable ? "Walkable" : "Blocked");
+
+            if (nearest.node.Walkable)
+            {
+                GGDebug.Console("Move to: " + (Vector3)nearest.node.position);
+            } else
+            {
+                GGDebug.Console("Blocked", Enums.DebugType.Warning);
+            }
         }
 
         public void MoveTo(Vector3 move_position)
