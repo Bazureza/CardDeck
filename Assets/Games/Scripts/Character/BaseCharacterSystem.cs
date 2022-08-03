@@ -1,4 +1,5 @@
 ﻿using GuraGames.GameSystem;
+using Pathfinding;
 using Sirenix.OdinInspector;
 using System.Collections;
 using System.Collections.Generic;
@@ -11,34 +12,30 @@ namespace GuraGames.Character
     {
         [SerializeField] protected bool allowedDiagonalMoves;
 
-        protected AstarPath aStar;
+        [Header("AI")]
+        [SerializeField] protected AIAgent agent;
 
-        protected virtual void OnAwake()
-        {
-            aStar = ServiceLocator.Resolve<AstarPath>();
-        }
+        protected bool onMove;
+
+        protected virtual void OnAwake() { agent.Init(); }
 
         protected virtual void OnStart() { }
 
         protected virtual void OnLoop() { }
 
-        [Button]
-        protected virtual void OnMove(Vector3 move_position)
-        {
-            var nearest = aStar.GetNearest(move_position);
-
-            if (nearest.node.Walkable)
-            {
-                GGDebug.Console("Move to: " + (Vector3)nearest.node.position);
-            } else
-            {
-                GGDebug.Console("Blocked", Enums.DebugType.Warning);
-            }
-        }
+        protected virtual void OnMove() { }
 
         public void MoveTo(Vector3 move_position)
         {
-            OnMove(move_position);
+            if (onMove) return;
+            DecideMoveTo(move_position);
+        }
+
+        private void DecideMoveTo(Vector3 move_position)
+        {
+            var result = agent.Scan(move_position);
+
+            if (result) OnMove();
         }
 
         private void Awake()
