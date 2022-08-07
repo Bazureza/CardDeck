@@ -25,7 +25,7 @@ namespace GuraGames.Character
 
         protected virtual void OnMove() { }
 
-        public void MoveTo(Vector3 move_position)
+        public virtual void MoveTo(Vector3 move_position)
         {
             if (onMove) return;
             DecideMoveTo(move_position);
@@ -33,9 +33,7 @@ namespace GuraGames.Character
 
         private void DecideMoveTo(Vector3 move_position)
         {
-            var result = agent.Scan(move_position);
-
-            if (result) OnMove();
+            StartCoroutine(agent.Scan(move_position, () => OnMove()));
         }
 
         private void Awake()
