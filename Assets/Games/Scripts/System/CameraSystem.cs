@@ -24,7 +24,8 @@ namespace GuraGames.GameSystem
         public Tween MoveCameraToSubLevel(int id)
         {
             GGDebug.Console($"Sub Level ID:{id}");
-            var subLevelData = levelDataManager.GetSubLevelData(id);
+            levelDataManager.ChangeActiveSubLevel(id);
+            var subLevelData = levelDataManager.GetActiveSubLevelData();
             return transform.DOMove(subLevelData.GetLevelPosition(), 0.5f).SetEase(Ease.Linear);
         }
     }

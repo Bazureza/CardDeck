@@ -20,6 +20,7 @@ namespace GuraGames.Manager
         private void Start()
         {
             OnStart();
+            Console("Game Manager Started");
         }
 
         private void Update()

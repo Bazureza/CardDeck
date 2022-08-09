@@ -1,5 +1,6 @@
 ﻿using GuraGames.GameSystem;
 using Pathfinding;
+using Sirenix.OdinInspector;
 using System.Collections;
 using System.Collections.Generic;
 using TomGustin.GameDesignPattern;
@@ -11,7 +12,8 @@ namespace GuraGames.Character
     public class AIAgent : MonoBehaviour
     {
         [Header("Properties")]
-        [SerializeField] private int farestNodeMove;
+        [SerializeField] private bool limitNodeDetect;
+        [SerializeField, ShowIf("limitNodeDetect")] private int farestNodeDetect;
 
         //Pathfinding props
         protected AstarPath aStar;
@@ -74,11 +76,11 @@ namespace GuraGames.Character
             }
         }
 
-        public IEnumerator Scan(Vector3 target_position, UnityAction onCompleteScan)
+        public IEnumerator Scan(Vector3 target_position, UnityAction onCompleteScan, bool forceScan = false)
         {
             var nearest = aStar.GetNearest(target_position);
 
-            if (lastNode != null && lastNode.Equals(nearest.node)) yield break;
+            if (!forceScan && (lastNode != null && lastNode.Equals(nearest.node))) yield break;
             lastNode = nearest.node;
 
             if (lastNode.Walkable)
@@ -87,7 +89,7 @@ namespace GuraGames.Character
                 currentPath = seeker.StartPath(transform.position, (Vector3)lastNode.position);
 
                 yield return new WaitUntil(currentPath.IsDone);
-                if (currentPath.path.Count > 3 + 1)
+                if (limitNodeDetect && currentPath.path.Count > farestNodeDetect + 1)
                 {
                     GGDebug.Console("Outside Max Node Move", Enums.DebugType.Warning);
                     yield break;
@@ -125,6 +127,11 @@ namespace GuraGames.Character
         public GridGraph GetGraphOn(Vector2 position)
         {
             return aStar.GetNearest(position).node.Graph as GridGraph;
+        }
+
+        public Vector3 GetNodePositionOn(Vector2 position)
+        {
+            return (Vector3) aStar.GetNearest(position).node.position;
         }
 
         private float GetNodeSize(NavGraph graph)

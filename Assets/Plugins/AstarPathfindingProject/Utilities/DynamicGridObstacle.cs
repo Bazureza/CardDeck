@@ -91,7 +91,7 @@ namespace Pathfinding {
 			prevBounds = bounds;
 			prevRotation = tr.rotation;
 			// Make sure we update the graph as soon as we find that the collider is enabled
-			prevEnabled = false;
+			prevEnabled = colliderEnabled;
 		}
 
 		public override void OnPostScan () {
@@ -104,7 +104,54 @@ namespace Pathfinding {
 			if (coll != null) prevEnabled = colliderEnabled;
 		}
 
-		void Update () {
+		public void Scan()
+        {
+			// Check if the previous graph updates have been completed yet.
+			// We don't want to update the graph again until the last graph updates are done.
+			// This is particularly important for recast graphs for which graph updates can take a long time.
+			while (pendingGraphUpdates.Count > 0 && pendingGraphUpdates.Peek().stage != GraphUpdateStage.Pending)
+			{
+				pendingGraphUpdates.Dequeue();
+			}
+
+			if (colliderEnabled)
+			{
+				// The current bounds of the collider
+				Bounds newBounds = bounds;
+				var newRotation = tr.rotation;
+
+				Vector3 minDiff = prevBounds.min - newBounds.min;
+				Vector3 maxDiff = prevBounds.max - newBounds.max;
+
+				var extents = newBounds.extents.magnitude;
+				// This is the distance that a point furthest out on the bounding box
+				// would have moved due to the changed rotation of the object
+				var errorFromRotation = extents * Quaternion.Angle(prevRotation, newRotation) * Mathf.Deg2Rad;
+
+				// If the difference between the previous bounds and the new bounds is greater than some value, update the graphs
+				if (minDiff.sqrMagnitude > updateError * updateError || maxDiff.sqrMagnitude > updateError * updateError ||
+					errorFromRotation > updateError || !prevEnabled)
+				{
+					// Update the graphs as soon as possible
+					DoUpdateGraphs();
+				}
+			}
+			else
+			{
+				// Collider has just been disabled
+				if (prevEnabled)
+				{
+					DoUpdateGraphs();
+				}
+			}
+		}
+
+		public void EnableCollider(bool enable)
+        {
+			coll2D.enabled = enable;
+		}
+
+		/*void Update () {
 			if (!Application.isPlaying) return;
 
 			if (coll == null && coll2D == null) {
@@ -150,7 +197,7 @@ namespace Pathfinding {
 					DoUpdateGraphs();
 				}
 			}
-		}
+		}*/
 
 		/// <summary>
 		/// Revert graphs when disabled.

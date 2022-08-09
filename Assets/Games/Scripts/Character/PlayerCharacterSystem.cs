@@ -17,6 +17,8 @@ namespace GuraGames.Character
         private CameraSystem cameraSystem;
         private IndicatorMovesUI imui;
 
+        private bool active_turn;
+
         protected override void OnAwake()
         {
             base.OnAwake();
@@ -70,8 +72,9 @@ namespace GuraGames.Character
             yield return null;
             onMove = false;
 
-            indicatorMove.SetActive(true);
-            DetectAdjacentNode();
+            NextTurnWorld();
+            /*indicatorMove.SetActive(true);
+            DetectAdjacentNode();*/
         }
 
         private IEnumerator DoMoveThroughPath(Path paths)
@@ -90,8 +93,9 @@ namespace GuraGames.Character
             yield return null;
             onMove = false;
 
-            indicatorMove.SetActive(true);
-            DetectAdjacentNode();
+            NextTurnWorld();
+            /*indicatorMove.SetActive(true);
+            DetectAdjacentNode();*/
         }
 
         private void DetectAdjacentNode() 
@@ -100,6 +104,32 @@ namespace GuraGames.Character
             GGDebug.Console($"Top:{adjacent.top} - Right:{adjacent.right} - Bottom:{adjacent.bottom} - Left:{adjacent.left}");
 
             imui.RenderIndicatorMove(adjacent);
+        }
+
+        public override void MoveTo(Vector3 move_position)
+        {
+            if (!active_turn) return;
+            base.MoveTo(move_position);
+        }
+
+        protected override void StartTurnWorld()
+        {
+            active_turn = true;
+            base.StartTurnWorld();
+            indicatorMove.SetActive(true);
+            DetectAdjacentNode();
+        }
+
+        protected override void NextTurnWorld()
+        {
+            EndTurnWorld();
+        }
+
+        protected override void EndTurnWorld()
+        {
+            base.EndTurnWorld();
+            active_turn = false;
+            tbm.NextTurn();
         }
     }
 }
