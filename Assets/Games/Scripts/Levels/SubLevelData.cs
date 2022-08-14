@@ -26,5 +26,16 @@ namespace GuraGames.Level
         {
             return enemies;
         }
+
+        public void RemoveEnemy(BaseCharacterSystem enemy)
+        {
+            enemies.Remove(enemy);
+            enemy.gameObject.Recycle();
+        }
+
+        public bool IsEnemiesClear()
+        {
+            return enemies.Count == 0;
+        }
     }
 }

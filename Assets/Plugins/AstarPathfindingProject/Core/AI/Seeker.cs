@@ -370,6 +370,17 @@ namespace Pathfinding {
 		}
 
 		/// <summary>
+		/// Call this function to start calculating a path. Modified by TG - Gura Games
+		/// Since this method does not take a callback parameter, you should set the <see cref="pathCallback"/> field before calling this method.
+		/// </summary>
+		/// <param name="start">The start point of the path</param>
+		/// <param name="end">The end point of the path</param>
+		public Path StartPathIgnoreAll(Vector3 start, Vector3 end)
+		{
+			return StartPathIgnoreAll(ABPath.Construct(start, end, null), null);
+		}
+
+		/// <summary>
 		/// Call this function to start calculating a path.
 		///
 		/// callback will be called when the path has completed.
@@ -416,6 +427,26 @@ namespace Pathfinding {
 			// The non-default check is primarily for compatibility reasons to avoid breaking peoples existing code.
 			// The StartPath overloads with an explicit graphMask field should be used instead to set the graphMask.
 			if (p.nnConstraint.graphMask == -1) p.nnConstraint.graphMask = graphMask;
+			StartPathInternal(p, callback);
+			return p;
+		}
+
+		/// <summary>
+		/// This function is modified from <see cref="StartPath(Path, OnPathDelegate)"/>
+		/// Modify by TG (Gura Games)
+		/// </summary>
+		/// <param name="p">The path to start calculating</param>
+		/// <param name="callback">The function to call when the path has been calculated</param>
+		public Path StartPathIgnoreAll(Path p, OnPathDelegate callback = null)
+		{
+			// Set the graph mask only if the user has not changed it from the default value.
+			// This is not perfect as the user may have wanted it to be precisely -1
+			// however it is the best detection that I can do.
+			// The non-default check is primarily for compatibility reasons to avoid breaking peoples existing code.
+			// The StartPath overloads with an explicit graphMask field should be used instead to set the graphMask.
+			if (p.nnConstraint.graphMask == -1) p.nnConstraint.graphMask = graphMask;
+			p.nnConstraint.walkable = false;
+			p.nnConstraint.constrainWalkability = false;
 			StartPathInternal(p, callback);
 			return p;
 		}

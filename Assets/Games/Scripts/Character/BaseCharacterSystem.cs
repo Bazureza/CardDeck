@@ -1,16 +1,15 @@
-﻿using GuraGames.GameSystem;
+﻿using GuraGames.AI;
+using GuraGames.GameSystem;
 using GuraGames.Interface;
 using GuraGames.Manager;
-using Pathfinding;
-using Sirenix.OdinInspector;
 using System.Collections;
-using System.Collections.Generic;
 using TomGustin.GameDesignPattern;
 using UnityEngine;
+using UnityTaskManager;
 
 namespace GuraGames.Character
 {
-    public class BaseCharacterSystem : MonoBehaviour, IWorldTurnBased
+    public class BaseCharacterSystem : MonoBehaviour, ITurnBased, ICharacterHit
     {
         [SerializeField] protected bool allowedDiagonalMoves;
         [SerializeField] protected CharacterData characterData;
@@ -28,9 +27,16 @@ namespace GuraGames.Character
             }
         }
 
-        protected bool onMove;
+        protected bool onAction;
+        protected bool onScan;
 
-        protected virtual void OnAwake() { agent.Init(); }
+        protected virtual void OnAwake() 
+        {
+            agent.Init();
+            characterData.SetHealth();
+            characterData.SetMana();
+            characterData.SetMove();
+        }
 
         protected virtual void OnStart() { }
 
@@ -40,14 +46,25 @@ namespace GuraGames.Character
 
         public virtual void MoveTo(Vector3 move_position)
         {
-            if (onMove) return;
-            DecideMoveTo(move_position);
+            if (onAction || onScan) return;
+            new Task(DecideMoveTo(move_position));
         }
 
-        private void DecideMoveTo(Vector3 move_position)
+        private IEnumerator DecideMoveTo(Vector3 move_position)
         {
-            StartCoroutine(agent.Scan(move_position, () => OnMove()));
+            onScan = true;
+            yield return agent.Scan(move_position, () => OnMove());
+            onScan = false;
         }
+
+        protected virtual void Hit(int damage)
+        {
+            characterData.UpdateHealth(damage);
+
+            if (characterData.CurrentHealthPoint == 0) Dead();
+        }
+
+        protected virtual void Dead() { }
 
         protected virtual void StartTurnWorld()
         {
@@ -61,7 +78,7 @@ namespace GuraGames.Character
 
         protected virtual void EndTurnWorld()
         {
-            characterData.SetMana(characterData.BaseMana, true);
+            characterData.SetMana(characterData.BaseManaPoint, true);
         }
 
         private void Awake()
@@ -79,19 +96,25 @@ namespace GuraGames.Character
             OnLoop();
         }
 
-        void IWorldTurnBased.StartTurn_World()
+        void ITurnBased.StartTurn()
         {
             StartTurnWorld();
         }
 
-        void IWorldTurnBased.NextTurn_World()
+        void ITurnBased.NextTurn()
         {
             NextTurnWorld();
         }
 
-        void IWorldTurnBased.EndTurn_World()
+        void ITurnBased.EndTurn()
         {
             EndTurnWorld();
+        }
+
+        void ICharacterHit.Hit(string sender, int damage)
+        {
+            GGDebug.Console($"{sender} is hitting {gameObject.name}! -{damage}HP");
+            Hit(-damage);
         }
     }
 }

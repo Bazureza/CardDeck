@@ -11,36 +11,55 @@ namespace GuraGames.Character
         [SerializeField] private string characterID;
         [SerializeField] private string characterName;
 
-        [SerializeField] private int baseCharacterHealth;
-        [SerializeField] private int baseCharacterMana;
+        [SerializeField] private int baseCharacterHealthPoint;
+        [SerializeField] private int baseCharacterManaPoint;
+        [SerializeField] private int baseCharacterMovePoint;
 
         [SerializeField, ReadOnly] private int health_point;
         [SerializeField, ReadOnly] private int mana_point;
+        [SerializeField, ReadOnly] private int move_point;
 
-        public void SetHealth(int health, bool forceChange = false)
+        public void SetHealth(int health = 0, bool forceChange = false)
         {
-            baseCharacterHealth = (forceChange ? 0 : baseCharacterHealth) + health;
+            health_point = (forceChange ? 0 : baseCharacterHealthPoint) + health;
         }
 
-        public void SetMana(int mana, bool forceChange = false)
+        public void SetMana(int mana = 0, bool forceChange = false)
         {
-            baseCharacterMana = (forceChange ? 0 : baseCharacterMana) + mana;
+            mana_point = (forceChange ? 0 : baseCharacterManaPoint) + mana;
+        }
+
+        public void SetMove(int move = 0, bool forceChange = false)
+        {
+            move_point = (forceChange ? 0 : baseCharacterMovePoint) + move;
         }
 
         public void UpdateHealth(int health)
         {
-            baseCharacterHealth += health;
+            health_point += health;
 
-            if (baseCharacterHealth < 0) baseCharacterHealth = 0;
+            if (health_point < 0) health_point = 0;
         }
 
         public void UpdateMana(int mana)
         {
-            baseCharacterMana += mana;
+            mana_point += mana;
 
-            if (baseCharacterMana < 0) baseCharacterMana = 0;
+            if (mana_point < 0) mana_point = 0;
         }
 
-        public int BaseMana { get { return baseCharacterMana; } }
+        public void UpdateMove(int move)
+        {
+            move_point += move;
+
+            if (move_point < 0) move_point = 0;
+        }
+
+        public int BaseHealthPoint { get { return baseCharacterHealthPoint; } }
+        public int BaseManaPoint { get { return baseCharacterManaPoint; } }
+        public int BaseMovePoint { get { return baseCharacterMovePoint; } }
+        public int CurrentHealthPoint { get { return health_point; } }
+        public int CurrentManaPoint { get { return mana_point; } }
+        public int CurrentMovePoint { get { return move_point; } }
     }
 }

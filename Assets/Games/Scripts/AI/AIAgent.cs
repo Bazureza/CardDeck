@@ -1,5 +1,6 @@
 ﻿using GuraGames.GameSystem;
 using Pathfinding;
+using Pathfinding.Util;
 using Sirenix.OdinInspector;
 using System.Collections;
 using System.Collections.Generic;
@@ -7,7 +8,7 @@ using TomGustin.GameDesignPattern;
 using UnityEngine;
 using UnityEngine.Events;
 
-namespace GuraGames.Character
+namespace GuraGames.AI
 {
     public class AIAgent : MonoBehaviour
     {
@@ -79,15 +80,18 @@ namespace GuraGames.Character
         public IEnumerator Scan(Vector3 target_position, UnityAction onCompleteScan, bool forceScan = false)
         {
             var nearest = aStar.GetNearest(target_position);
-
+            
             if (!forceScan && (lastNode != null && lastNode.Equals(nearest.node))) yield break;
             lastNode = nearest.node;
+            var currentNode = aStar.GetNearest(transform.position);
 
-            if (lastNode.Walkable)
+            if (lastNode.Equals(currentNode.node)) yield break;
+
+            if (lastNode.Walkable && lastNode.Graph.Equals(currentNode.node.Graph))
             {
                 GGDebug.Console("Move to: " + (Vector3)lastNode.position);
-                currentPath = seeker.StartPath(transform.position, (Vector3)lastNode.position);
 
+                currentPath = seeker.StartPath(transform.position, (Vector3)lastNode.position);
                 yield return new WaitUntil(currentPath.IsDone);
                 if (limitNodeDetect && currentPath.path.Count > farestNodeDetect + 1)
                 {
@@ -105,9 +109,57 @@ namespace GuraGames.Character
             }
         }
 
+        public IEnumerator ScanWithIgnoreAll(Vector3 target_position, int farestNodeDetect, UnityAction onCompleteScan, bool forceScan = false)
+        {
+            var nearest = aStar.GetNearest(target_position);
+
+            if (!forceScan && (lastNode != null && lastNode.Equals(nearest.node))) yield break;
+            lastNode = nearest.node;
+            var currentNode = aStar.GetNearest(transform.position);
+
+            if (lastNode.Graph.Equals(currentNode.node.Graph))
+            {
+                GGDebug.Console("Create special path to: " + (Vector3)lastNode.position);
+
+                currentPath = seeker.StartPathIgnoreAll(transform.position, (Vector3)lastNode.position);
+                yield return new WaitUntil(currentPath.IsDone);
+                if (currentPath.path.Count > farestNodeDetect + 1)
+                {
+                    GGDebug.Console("Outside Max Range", Enums.DebugType.Warning);
+                    yield break;
+                }
+
+                GGDebug.Console("Current special path " + currentPath.path.Count);
+
+                onCompleteScan?.Invoke();
+            }
+            else
+            {
+                GGDebug.Console("Blocked", Enums.DebugType.Warning);
+            }
+        }
+
         public Path GetScannedPath()
         {
             return currentPath;
+        }
+
+        public List<Vector2> GetPositionAroundNodes(Vector2 localPosition, Bounds bounds, int farestNode)
+        {
+            var nodes = GetCurrentActiveGraph().GetNodesInRegion(bounds);
+            List<Vector2> selectedNodeVector = new List<Vector2>();
+
+            foreach (GraphNode node in nodes) 
+            {
+                if (node.Walkable)
+                {
+                    var pathNode = seeker.StartPath(localPosition, (Vector3)node.position);
+                    if (pathNode.path.Count <= farestNode) selectedNodeVector.Add((Vector3) node.position);
+                }
+            }
+
+            ListPool<GraphNode>.Release(ref nodes);
+            return selectedNodeVector;
         }
 
         public float GetCurrentNodeSize()

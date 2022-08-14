@@ -1,12 +1,10 @@
 ﻿using GuraGames.Character;
 using GuraGames.Enums;
-using GuraGames.GameSystem;
 using GuraGames.Interface;
 using GuraGames.Level;
 using MonsterLove.StateMachine;
 using Sirenix.OdinInspector;
 using System.Collections;
-using System.Collections.Generic;
 using TomGustin.GameDesignPattern;
 using UnityEngine;
 
@@ -19,7 +17,7 @@ namespace GuraGames.Manager
         private StateMachine<CharacterType> state;
         private BaseCharacterSystem player;
         private LevelDataManager level;
-
+        
         private bool can_next;
 
         protected override void OnAwake()
@@ -27,9 +25,7 @@ namespace GuraGames.Manager
             base.OnAwake();
             player = ServiceLocator.Resolve<PlayerCharacterSystem>();
             level = ServiceLocator.Resolve<LevelDataManager>();
-
             state = StateMachine<CharacterType>.Initialize(this);
-            //state.Changed += (CharacterType st) => { currentTurn = st; };
         }
 
         public void StartTurnBased(CharacterType firstTurn)
@@ -53,29 +49,43 @@ namespace GuraGames.Manager
         private IEnumerator Player_Enter()
         {
             can_next = false;
-            GGDebug.Console("Player Turn");
-            ((IWorldTurnBased)player).StartTurn_World();
+
+            Console("Player Turn");
+            ((ITurnBased)player).StartTurn();
 
             yield return new WaitUntil(() => can_next);
-            GGDebug.Console("Player Done");
+            Console("Player Done");
             ChangeTurn(CharacterType.Enemy);
+        }
+
+        private void Player_Exit()
+        {
+            ((ITurnBased)player).EndTurn();
         }
 
         private IEnumerator Enemy_Enter()
         {
-            GGDebug.Console("Enemy Turn");
+            Console("Enemy Turn");
 
             foreach (BaseCharacterSystem bcs in level.GetActiveSubLevelEnemies())
             {
                 can_next = false;
-                ((IWorldTurnBased)bcs).StartTurn_World();
+                ((ITurnBased)bcs).StartTurn();
                 yield return new WaitUntil(()=> can_next);
                 yield return null;
             }
             yield return null;
             yield return new WaitForEndOfFrame();
-            GGDebug.Console("Enemy Turn Done");
+            Console("Enemy Turn Done");
             ChangeTurn(CharacterType.Player);
+        }
+
+        private void Enemy_Exit()
+        {
+            foreach (BaseCharacterSystem bcs in level.GetActiveSubLevelEnemies())
+            {
+                ((ITurnBased)bcs).EndTurn();
+            }
         }
         #endregion
     }

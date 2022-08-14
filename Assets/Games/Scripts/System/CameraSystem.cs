@@ -9,6 +9,7 @@ namespace GuraGames.GameSystem
 {
     public class CameraSystem : MonoBehaviour
     {
+        [SerializeField] private Vector3 offset;
         [SerializeField] private Camera cam;
 
         private LevelDataManager _levelDataManager;
@@ -26,7 +27,7 @@ namespace GuraGames.GameSystem
             GGDebug.Console($"Sub Level ID:{id}");
             levelDataManager.ChangeActiveSubLevel(id);
             var subLevelData = levelDataManager.GetActiveSubLevelData();
-            return transform.DOMove(subLevelData.GetLevelPosition(), 0.5f).SetEase(Ease.Linear);
+            return transform.DOMove(subLevelData.GetLevelPosition() + offset, 0.5f).SetEase(Ease.Linear);
         }
     }
 }
