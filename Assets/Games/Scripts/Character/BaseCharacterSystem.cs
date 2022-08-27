@@ -42,7 +42,7 @@ namespace GuraGames.Character
 
         protected virtual void OnLoop() { }
 
-        protected virtual void OnMove() { }
+        protected virtual void OnMove(IInteract interact_object) { }
 
         public virtual void MoveTo(Vector3 move_position)
         {
@@ -53,7 +53,7 @@ namespace GuraGames.Character
         private IEnumerator DecideMoveTo(Vector3 move_position)
         {
             onScan = true;
-            yield return agent.Scan(move_position, () => OnMove());
+            yield return agent.Scan(move_position, (x) => OnMove(x));
             onScan = false;
         }
 

@@ -23,6 +23,7 @@ namespace GuraGames.Manager
         {
             base.OnStart();
 
+            MouseInputSystem.Active = true;
             tbm.StartTurnBased(CharacterType.Player);
         }
     }

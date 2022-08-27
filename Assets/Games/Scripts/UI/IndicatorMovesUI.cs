@@ -8,11 +8,17 @@ namespace GuraGames.UI
 {
     public class IndicatorMovesUI : MonoBehaviour
     {
-        [Header("References")]
+        [Header("References Local")]
         [SerializeField] private RectTransform upMove;
         [SerializeField] private RectTransform rightMove;
         [SerializeField] private RectTransform downMove;
         [SerializeField] private RectTransform leftMove;
+
+        [Header("References Global")]
+        [SerializeField] private RectTransform upMoveMainUI;
+        [SerializeField] private RectTransform rightMoveMainUI;
+        [SerializeField] private RectTransform downMoveMainUI;
+        [SerializeField] private RectTransform leftMoveMainUI;
 
         private PlayerCharacterSystem _player;
         private PlayerCharacterSystem player
@@ -29,7 +35,7 @@ namespace GuraGames.UI
             player?.ChangeSubLevel(move);
         }
 
-        public void RenderIndicatorMove((bool up, bool right, bool down, bool left) indicatorMove)
+        public void RenderIndicatorMoveLocal((bool up, bool right, bool down, bool left) indicatorMove)
         {
             upMove.gameObject.SetActive(indicatorMove.up);
             rightMove.gameObject.SetActive(indicatorMove.right);
@@ -37,9 +43,22 @@ namespace GuraGames.UI
             leftMove.gameObject.SetActive(indicatorMove.left);
         }
 
-        public void ResetIndicator()
+        public void RenderIndicatorMoveGlobal((bool up, bool right, bool down, bool left) indicatorMove)
         {
-            RenderIndicatorMove((false, false, false, false));
+            upMoveMainUI.gameObject.SetActive(indicatorMove.up);
+            rightMoveMainUI.gameObject.SetActive(indicatorMove.right);
+            downMoveMainUI.gameObject.SetActive(indicatorMove.down);
+            leftMoveMainUI.gameObject.SetActive(indicatorMove.left);
+        }
+
+        public void ResetIndicatorLocal()
+        {
+            RenderIndicatorMoveLocal((false, false, false, false));
+        }
+
+        public void ResetIndicatorGlobal()
+        {
+            RenderIndicatorMoveGlobal((false, false, false, false));
         }
     }
 }

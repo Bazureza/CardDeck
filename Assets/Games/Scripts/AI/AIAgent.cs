@@ -1,4 +1,5 @@
 ﻿using GuraGames.GameSystem;
+using GuraGames.Interface;
 using Pathfinding;
 using Pathfinding.Util;
 using Sirenix.OdinInspector;
@@ -77,10 +78,10 @@ namespace GuraGames.AI
             }
         }
 
-        public IEnumerator Scan(Vector3 target_position, UnityAction onCompleteScan, bool forceScan = false)
+        public IEnumerator Scan(Vector3 target_position, bool forceScan = false)
         {
             var nearest = aStar.GetNearest(target_position);
-            
+
             if (!forceScan && (lastNode != null && lastNode.Equals(nearest.node))) yield break;
             lastNode = nearest.node;
             var currentNode = aStar.GetNearest(transform.position);
@@ -100,8 +101,39 @@ namespace GuraGames.AI
                 }
 
                 GGDebug.Console("Current path " + currentPath.path.Count);
+            }
+            else
+            {
+                GGDebug.Console("Blocked", Enums.DebugType.Warning);
+            }
+        }
 
-                onCompleteScan?.Invoke();
+        public IEnumerator Scan(Vector3 target_position, UnityAction<IInteract> onCompleteScan, bool forceScan = false)
+        {
+            var nearest = aStar.GetNearest(target_position);
+            var interactable = TryCheckInteractable(target_position, out IInteract interact_object);
+            
+            if (!interactable && !forceScan && (lastNode != null && lastNode.Equals(nearest.node))) yield break;
+            lastNode = nearest.node;
+            var currentNode = aStar.GetNearest(transform.position);
+
+            if (lastNode.Equals(currentNode.node)) yield break;
+
+            if (lastNode.Walkable && lastNode.Graph.Equals(currentNode.node.Graph))
+            {
+                GGDebug.Console("Move to: " + (Vector3)lastNode.position);
+
+                currentPath = seeker.StartPath(transform.position, (Vector3)lastNode.position);
+                yield return new WaitUntil(currentPath.IsDone);
+                if (limitNodeDetect && currentPath.path.Count > farestNodeDetect + 1)
+                {
+                    GGDebug.Console("Outside Max Node Move", Enums.DebugType.Warning);
+                    yield break;
+                }
+
+                GGDebug.Console("Current path " + currentPath.path.Count);
+
+                onCompleteScan?.Invoke(interact_object);
             }
             else
             {
@@ -194,6 +226,17 @@ namespace GuraGames.AI
         private Vector3 GetNodeDirection(Vector2 direction, NavGraph graph)
         {
             return direction * GetNodeSize(graph);
+        }
+
+        private bool TryCheckInteractable(Vector2 pos, out IInteract interactable)
+        {
+            interactable = null;
+            Collider2D coll = Physics2D.OverlapPoint(pos, LayerMask.GetMask(new string[] { "NPC" }));
+
+            if (!coll) return false;
+            interactable = coll.GetComponent<IInteract>();
+            if (interactable == null) return false;
+            return true;
         }
     }
 }

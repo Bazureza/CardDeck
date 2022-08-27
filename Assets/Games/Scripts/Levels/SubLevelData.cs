@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
 
 namespace GuraGames.Level
 {
@@ -10,6 +11,11 @@ namespace GuraGames.Level
         [SerializeField] private int id;
         [SerializeField] private string sublevelType;
         [SerializeField] private List<BaseCharacterSystem> enemies;
+        [SerializeField] private UnityEvent onClearSubLevel;
+
+        public ConnectionData connection;
+
+        private bool isClear;
         
         public int ID 
         {
@@ -35,7 +41,24 @@ namespace GuraGames.Level
 
         public bool IsEnemiesClear()
         {
-            return enemies.Count == 0;
+            return enemies == null || enemies.Count == 0;
+        }
+
+        public void OnClearEnemy(UnityEvent onClearAction)
+        {
+            if (isClear) return;
+            isClear = true;
+            onClearAction?.Invoke();
+            onClearSubLevel.Invoke();
+        }
+
+        [System.Serializable]
+        public class ConnectionData
+        {
+            public bool up;
+            public bool right;
+            public bool down;
+            public bool left;
         }
     }
 }

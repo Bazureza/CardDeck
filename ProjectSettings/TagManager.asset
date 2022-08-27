@@ -16,8 +16,8 @@ TagManager:
   - Obstacle
   - Player
   - Enemy
-  - 
-  - 
+  - NPC
+  - Map
   - 
   - 
   - 
@@ -41,17 +41,20 @@ TagManager:
   - name: Default
     uniqueID: 0
     locked: 0
+  - name: Water
+    uniqueID: 3653281975
+    locked: 0
   - name: Ground
     uniqueID: 1831833575
+    locked: 0
+  - name: Object
+    uniqueID: 1143338783
     locked: 0
   - name: Indicator
     uniqueID: 3193129669
     locked: 0
-  - name: Water
-    uniqueID: 3653281975
-    locked: 0
-  - name: Object
-    uniqueID: 1143338783
+  - name: Obstacle
+    uniqueID: 2573098729
     locked: 0
   - name: UI
     uniqueID: 3367879209

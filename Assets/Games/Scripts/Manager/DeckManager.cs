@@ -26,6 +26,17 @@ namespace GuraGames.Manager
         public List<CardData> GetHomeDecks { get { return onDeck; } }
         public List<CardData> GetHandDecks { get { return onHand; } }
         public List<CardData> GetGraveDecks { get { return onGrave; } }
+        public List<CardData> GetAllDecks
+        {
+            get 
+            {
+                var merged_list = new List<CardData>();
+                merged_list.AddRange(onDeck);
+                merged_list.AddRange(onHand);
+                merged_list.AddRange(onGrave);
+                return merged_list;
+            }
+        }
         public CardData CurrentUsedCard { get { return currentUsedCard; } }
 
         private DeckUI _deck_ui;
@@ -59,6 +70,18 @@ namespace GuraGames.Manager
         }
 
         #region External Deck Functions
+        public void AddCardToDeck(CardData card)
+        {
+            onDeck.Add(card);
+            deck_ui.UpdateDeck(onDeck.Count);
+        }
+
+        public void RemoveCardFromDeck(CardData card)
+        {
+            onDeck.Remove(card);
+            deck_ui.UpdateDeck(onDeck.Count);
+        }
+
         public void ShowHandDecks(bool show)
         {
             deck_ui.ShowHandDecks(show);
@@ -73,7 +96,6 @@ namespace GuraGames.Manager
         public void InitDeck()
         {
             InitiateDeck();
-            FillHandCard(false);
 
             deck_ui.UpdateDeck(onDeck.Count);
             deck_ui.UpdateGrave(onGrave.Count);
@@ -132,6 +154,27 @@ namespace GuraGames.Manager
             deck_ui.UpdatePreview(currentUsedCard);
         }
 
+        public void BringToGrave()
+        {
+            onGrave.AddRange(onHand);
+            onHand.Clear();
+            deck_ui.UpdateHandCard();
+            deck_ui.UpdateGrave(onGrave.Count);
+        }
+
+        public void BringToDeck()
+        {
+            if (onHand.Count > 0) BringToGrave();
+            if (onGrave.Count > 0)
+            {
+                onDeck.AddRange(onGrave);
+                onGrave.Clear();
+                deck_ui.UpdateGrave(onGrave.Count);
+                deck_ui.UpdateDeck(onDeck.Count);
+                onDeck.Shuffle();
+            }
+        }
+
         public void UseCard()
         {
             if (!currentUsedCard) return;
@@ -163,9 +206,15 @@ namespace GuraGames.Manager
         [Button]
         public void RenewDeck()
         {
-            ShuffleGrave();
+            //ShuffleGrave();
             onDeck.AddRange(onGrave);
             onGrave.Clear();
+            ShuffleDeck();
+        }
+
+        public void ReleaseUsedCard()
+        {
+            currentUsedCard = null;
         }
         #endregion
 

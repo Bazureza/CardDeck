@@ -9,9 +9,11 @@ namespace GuraGames.GameSystem
     {
         [SerializeField] protected MouseEvent onClick;
 
+        public static bool Active { set; get; }
+
         private void Update()
         {
-            if (Input.GetMouseButtonDown(0))
+            if (Active && Input.GetMouseButtonDown(0))
             {
                 onClick?.Invoke(Camera.main.ScreenToWorldPoint(Input.mousePosition));
             }

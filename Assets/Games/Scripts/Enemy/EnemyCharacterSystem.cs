@@ -24,6 +24,8 @@ namespace GuraGames.Character
         [SerializeField] private AIDecide decider;
         [SerializeField] private HealthUI healthUI;
 
+        private DropSpawnHandler dropHandler;
+
         private PlayerCharacterSystem _player;
         private PlayerCharacterSystem player
         {
@@ -44,6 +46,12 @@ namespace GuraGames.Character
             }
         }
 
+        protected override void OnAwake()
+        {
+            base.OnAwake();
+            dropHandler = GetComponent<DropSpawnHandler>();
+        }
+
         [Button]
         protected override void StartTurnWorld()
         {
@@ -57,14 +65,6 @@ namespace GuraGames.Character
             tbm.NextTurn();
         }
 
-        protected override void OnMove()
-        {
-            GGDebug.Console("Generate Path Enemy!");
-            Path paths = agent.GetScannedPath();
-
-            new UnityTaskManager.Task(DoMoveThroughPath(paths));
-        }
-
         protected override void Hit(int damage)
         {
             characterData.UpdateHealth(damage);
@@ -74,6 +74,7 @@ namespace GuraGames.Character
 
         protected override void Dead()
         {
+            dropHandler?.DropSpawn();
             level.GetActiveSubLevelData().RemoveEnemy(this);
         }
 
@@ -96,7 +97,7 @@ namespace GuraGames.Character
             obstacle.EnableCollider(false);
             obstacle.Scan();
 
-            yield return StartCoroutine(agent.Scan(player.transform.position, null, true));
+            yield return StartCoroutine(agent.Scan(player.transform.position, true));
 
             decider.RefreshFetchedAction();
             Path paths = agent.GetScannedPath();

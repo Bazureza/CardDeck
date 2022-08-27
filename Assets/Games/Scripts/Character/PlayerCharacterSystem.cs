@@ -25,6 +25,9 @@ namespace GuraGames.Character
         [SerializeField] private HealthUI h_ui;
         [SerializeField] private StatUI s_ui;
 
+        [Header("Collectible Properties")]
+        [SerializeField] private CollectibleData collectible;
+
         [Space(20)]
         [SerializeField, ReadOnly] private ActionType currentAction;
 
@@ -46,6 +49,9 @@ namespace GuraGames.Character
             }
         }
 
+        public CharacterData CharacterData { get { return characterData; } }
+        public CollectibleData CollectibleData { get { return collectible; } }
+
         protected override void OnAwake()
         {
             base.OnAwake();
@@ -61,11 +67,38 @@ namespace GuraGames.Character
             s_ui.UpdateMana(characterData.CurrentManaPoint);
         }
 
-        protected override void OnMove()
+        protected override void OnMove(IInteract interact_object)
         {
             Path paths = agent.GetScannedPath();
 
-            new UnityTaskManager.Task(DoMoveThroughPath(paths));
+            new UnityTaskManager.Task(DoMoveThroughPath(paths, interact_object));
+        }
+
+        public void AddCoin(int coin)
+        {
+            collectible.coin += coin;
+            GGDebug.Console($"Add {coin} coins.");
+            s_ui.UpdateCoin(collectible.coin);
+        }
+
+        public bool RemoveCoin(int coin)
+        {
+            if (IsSufficientCoin(coin))
+            {
+                collectible.coin -= coin;
+                GGDebug.Console($"Spend {coin} coins.");
+                s_ui.UpdateCoin(collectible.coin);
+                return true;
+            }
+
+            GGDebug.Console($"Coin is not enough.");
+            s_ui.UpdateCoin(collectible.coin);
+            return false;
+        }
+
+        public bool IsSufficientCoin(int coin)
+        {
+            return coin <= collectible.coin;
         }
 
         public void ForceEndTurn()
@@ -219,12 +252,12 @@ namespace GuraGames.Character
             onAction = false;
 
             ResetAction();
-            CheckingTurnCondition();
+            CheckingTurnCondition(true);
             /*indicatorMove.SetActive(true);
             DetectAdjacentNode();*/
         }
 
-        private IEnumerator DoMoveThroughPath(Path paths)
+        private IEnumerator DoMoveThroughPath(Path paths, IInteract interact_object)
         {
             onAction = true;
             ShowInteraction(false);
@@ -234,12 +267,16 @@ namespace GuraGames.Character
             } else characterData.UpdateMove(-1);
             s_ui.UpdateMove(characterData.CurrentMovePoint);
 
-            for (int i = 1; i < paths.path.Count; i++)
+            var interactable = interact_object != null;
+            var length = paths.path.Count - (interactable ? 1 : 0);
+            for (int i = 1; i < length; i++)
             {
                 Tween tween = transform.DOMove((Vector3)paths.path[i].position, 0.3f).SetEase(Ease.InOutCubic);
                 yield return tween.WaitForCompletion();
                 yield return null;
             }
+
+            if (interactable) interact_object.TryToInteract();
 
             yield return null;
             onAction = false;
@@ -265,7 +302,7 @@ namespace GuraGames.Character
             yield return null;
             onAction = false;
 
-            
+            deckManager.ReleaseUsedCard();
             CheckingTurnCondition();
         }
 
@@ -290,16 +327,30 @@ namespace GuraGames.Character
             yield return null;
             onAction = false;
 
-            characterData.UpdateMana(-deckManager.CurrentUsedCard.mana_consume);
+            deckManager.ReleaseUsedCard();
             CheckingTurnCondition();
         }
 
-        private void CheckingTurnCondition()
+        private bool TryCheckingIsNPCOnEndPath(Path path, out IInteract interactable)
+        {
+            interactable = null;
+            var endPoint = (Vector3) path.path[path.path.Count - 1].position;
+            Collider2D coll = Physics2D.OverlapPoint(endPoint, LayerMask.GetMask(new string[] {"NPC"}));
+
+            if (!coll) return false;
+            interactable = coll.GetComponent<IInteract>();
+            if (interactable == null) return false;
+            return true;
+        }
+
+        private void CheckingTurnCondition(bool changeLevel = false)
         {
             var checkingCondition = characterData.CurrentMovePoint > 0 || characterData.CurrentManaPoint > 0;
             if (checkingCondition)
             {
-                StartTurnWorld();
+                if (level.IsClearActiveSubLevel()) NextTurnWorld();
+                else if (changeLevel) StartTurnWorld();
+                else IterateTurnWorld();
             } else NextTurnWorld();
         }
 
@@ -309,7 +360,7 @@ namespace GuraGames.Character
             agent.CheckConjunctionNode(out (bool top, bool right, bool bottom, bool left) adjacent);
             GGDebug.Console($"Top:{adjacent.top} - Right:{adjacent.right} - Bottom:{adjacent.bottom} - Left:{adjacent.left}");
 
-            imui.RenderIndicatorMove(adjacent);
+            imui.RenderIndicatorMoveLocal(adjacent);
         }
 
         private void ShowInteraction(bool show)
@@ -322,7 +373,7 @@ namespace GuraGames.Character
             }
             deckManager.ShowHandDecks(show);
             if (show) deckManager.UpdateHandCard();
-            else imui.ResetIndicator();
+            else imui.ResetIndicatorLocal();
         }
 
         private void ShowIndicator(string indicator_type, bool value)
@@ -359,8 +410,18 @@ namespace GuraGames.Character
 
         protected override void StartTurnWorld()
         {
+            if (!level.IsClearActiveSubLevel()) deckManager.FillHandCard();
             base.StartTurnWorld();
 
+            active_turn = true;
+            currentAction = ActionType.Move;
+            if (characterData.CurrentMovePoint != 0) ShowIndicator("move", true);
+            ShowInteraction(true);
+            DetectAdjacentNode();
+        }
+
+        protected void IterateTurnWorld()
+        {
             active_turn = true;
             currentAction = ActionType.Move;
             if (characterData.CurrentMovePoint != 0) ShowIndicator("move", true);
@@ -371,6 +432,7 @@ namespace GuraGames.Character
         protected override void NextTurnWorld()
         {
             ResetAction();
+            deckManager.BringToGrave();
             tbm.NextTurn();
         }
 
