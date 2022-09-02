@@ -9,7 +9,6 @@ namespace GuraGames.Level
     public class SubLevelData : MonoBehaviour
     {
         [SerializeField] private int id;
-        [SerializeField] private string sublevelType;
         [SerializeField] private List<BaseCharacterSystem> enemies;
         [SerializeField] private UnityEvent onClearSubLevel;
 
@@ -37,6 +36,16 @@ namespace GuraGames.Level
         {
             enemies.Remove(enemy);
             enemy.gameObject.Recycle();
+        }
+
+        public void RemoveAllEnemy()
+        {
+            foreach (BaseCharacterSystem enemy in enemies)
+            {
+                enemy.gameObject.Recycle();
+            }
+
+            enemies.Clear();
         }
 
         public bool IsEnemiesClear()

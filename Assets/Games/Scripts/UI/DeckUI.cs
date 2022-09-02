@@ -72,6 +72,7 @@ namespace GuraGames.UI
 
         public void UpdatePreview(CardData card)
         {
+            previewImageCard.enabled = card;
             if (card)
             {
                 previewManaCardText.text = card.mana_consume.ToString();

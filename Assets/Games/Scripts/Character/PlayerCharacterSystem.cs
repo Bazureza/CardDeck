@@ -54,17 +54,13 @@ namespace GuraGames.Character
 
         protected override void OnAwake()
         {
-            base.OnAwake();
+            agent.Init();
 
             cameraSystem = ServiceLocator.Resolve<CameraSystem>();
             imui = ServiceLocator.Resolve<IndicatorMovesUI>();
             deckManager = ServiceLocator.Resolve<DeckManager>();
-            deckManager.InitDeck();
 
             enemyLayer = LayerMask.GetMask(new string[] { "Enemy" });
-            h_ui.UpdateHealth(characterData.BaseHealthPoint, characterData.CurrentHealthPoint);
-            s_ui.UpdateMove(characterData.CurrentMovePoint);
-            s_ui.UpdateMana(characterData.CurrentManaPoint);
         }
 
         protected override void OnMove(IInteract interact_object)
@@ -72,6 +68,31 @@ namespace GuraGames.Character
             Path paths = agent.GetScannedPath();
 
             new UnityTaskManager.Task(DoMoveThroughPath(paths, interact_object));
+        }
+
+        public void InitDataPlayer(Vector2 position, int health, int coin)
+        {
+            transform.position = position;
+            characterData.SetHealth(health, true);
+            characterData.SetMana();
+            characterData.SetMove();
+            collectible.coin = coin;
+
+            h_ui.UpdateHealth(characterData.BaseHealthPoint, characterData.CurrentHealthPoint);
+            s_ui.UpdateMove(characterData.CurrentMovePoint);
+            s_ui.UpdateMana(characterData.CurrentManaPoint);
+            s_ui.UpdateCoin(collectible.coin);
+        }
+
+        public void DefaultInit()
+        {
+            characterData.SetHealth();
+            characterData.SetMana();
+            characterData.SetMove();
+
+            h_ui.UpdateHealth(characterData.BaseHealthPoint, characterData.CurrentHealthPoint);
+            s_ui.UpdateMove(characterData.CurrentMovePoint);
+            s_ui.UpdateMana(characterData.CurrentManaPoint);
         }
 
         public void AddCoin(int coin)
@@ -170,6 +191,12 @@ namespace GuraGames.Character
             return characterData.CurrentManaPoint >= mana_require;
         }
 
+        public void UpdateHealth(int health)
+        {
+            characterData.UpdateHealth(health);
+            h_ui.UpdateHealth(characterData.BaseHealthPoint, characterData.CurrentHealthPoint);
+        }
+
         private IEnumerator DoAttackScan(Vector3 attack_position)
         {
             onScan = true;
@@ -234,7 +261,7 @@ namespace GuraGames.Character
                     }
                     break;
             }
-            deckManager.UpdatePreview(null);
+            
             onScan = false;
         }
 

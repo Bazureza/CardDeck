@@ -82,6 +82,18 @@ namespace GuraGames.Manager
             deck_ui.UpdateDeck(onDeck.Count);
         }
 
+        public void RemoveCards(List<CardData> cards)
+        {
+            foreach (CardData card in cards)
+            {
+                onDeck.Remove(card);
+                //onHand.Remove(card);
+                //onGrave.Remove(card);
+            }
+
+            deck_ui.UpdateDeck(onDeck.Count);
+        }
+
         public void ShowHandDecks(bool show)
         {
             deck_ui.ShowHandDecks(show);
@@ -93,10 +105,27 @@ namespace GuraGames.Manager
         }
 
         [Button]
-        public void InitDeck()
+        public void DefaultInit()
         {
             InitiateDeck();
 
+            deck_ui.UpdateDeck(onDeck.Count);
+            deck_ui.UpdateGrave(onGrave.Count);
+        }
+
+        public void InitDataDeck(List<string> deck_data)
+        {
+            onDeck = new List<CardData>();
+            foreach (string card in deck_data)
+            {
+                if (actions.Exists(x => x.card_id.Equals(card)))
+                {
+                    var fetched = actions.Find(x => x.card_id.Equals(card));
+                    onDeck.Add(fetched);
+                }
+            }
+
+            ShuffleDeck();
             deck_ui.UpdateDeck(onDeck.Count);
             deck_ui.UpdateGrave(onGrave.Count);
         }
@@ -215,6 +244,7 @@ namespace GuraGames.Manager
         public void ReleaseUsedCard()
         {
             currentUsedCard = null;
+            UpdatePreview(currentUsedCard);
         }
         #endregion
 

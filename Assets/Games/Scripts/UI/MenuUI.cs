@@ -20,6 +20,10 @@ namespace GuraGames.UI
         [SerializeField] private GridLayoutGroup gridDeck;
         [SerializeField] private RectTransform contentRect;
 
+        [Header("Setting Properties")]
+        [SerializeField] private Slider bgmSliderbar;
+        [SerializeField] private Slider sfxSliderbar;
+
         private List<CardUI> cards = new List<CardUI>();
 
         private DeckManager _deck;
@@ -32,10 +36,15 @@ namespace GuraGames.UI
             }
         }
 
+        public void MainMenu()
+        {
+            SceneSystem.LoadScene("MENU");
+        }
+
         public void OpenMenu(int index)
         {
             ResetPanel();
-
+            
             menuPanel.SetActive(true);
             subPanels[index].SetActive(true);
             MouseInputSystem.Active = false;
@@ -44,6 +53,9 @@ namespace GuraGames.UI
             {
                 case 0:
                     OpenDeckList();
+                    break;
+                case 2:
+                    UpdateSetting();
                     break;
             }
         }
@@ -56,14 +68,17 @@ namespace GuraGames.UI
             MouseInputSystem.Active = true;
         }
 
+        public void SetBGMVolume(float volume) { AudioSystem.BGMVolume = volume; }
+        public void SetSFXVolume(float volume) { AudioSystem.SFXVolume = volume; }
+
         private void OpenDeckList()
         {
             var decks = deck.GetAllDecks;
             int deckCount = decks.Count;
             int uiDeckCount = cards.Count;
 
-            int row_count = deckCount / 6;
-            float height_calculated = row_count * 130f + ((row_count -  1) * gridDeck.spacing.y);
+            int row_count = (deckCount / 6) + 1;
+            float height_calculated = row_count * 160f + ((row_count -  1) * gridDeck.spacing.y);
 
             int length_max = Mathf.Max(deckCount, uiDeckCount);
 
@@ -92,6 +107,12 @@ namespace GuraGames.UI
             {
                 subPanel.SetActive(false);
             }
+        }
+
+        private void UpdateSetting()
+        {
+            bgmSliderbar.value = AudioSystem.BGMVolume;
+            sfxSliderbar.value = AudioSystem.SFXVolume;
         }
     }
 }

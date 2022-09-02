@@ -8,7 +8,7 @@
     }
     SubShader
     {
-        Tags { "RenderType" = "Opaque" "Queue" = "Geometry+101" "DisableBatching" = "True"}
+        Tags { "RenderType" = "Opaque" "Queue" = "Geometry+101"}
 
         Pass
         {

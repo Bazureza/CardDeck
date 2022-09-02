@@ -1,4 +1,5 @@
 ﻿using GuraGames.Enums;
+using GuraGames.GameSystem;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
@@ -21,6 +22,7 @@ namespace GuraGames.Character
 
         public void SetHealth(int health = 0, bool forceChange = false)
         {
+            GGDebug.Console($"Set Health: {health}");
             health_point = (forceChange ? 0 : baseCharacterHealthPoint) + health;
         }
 
@@ -39,6 +41,7 @@ namespace GuraGames.Character
             health_point += health;
 
             if (health_point < 0) health_point = 0;
+            if (health_point > BaseHealthPoint) health_point = BaseHealthPoint;
         }
 
         public void UpdateMana(int mana)

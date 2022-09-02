@@ -76,6 +76,7 @@ namespace GuraGames.Character
         {
             dropHandler?.DropSpawn();
             level.GetActiveSubLevelData().RemoveEnemy(this);
+            tbm.UpdateTurnQueue();
         }
 
         private IEnumerator DoMoveThroughPath(Path paths)

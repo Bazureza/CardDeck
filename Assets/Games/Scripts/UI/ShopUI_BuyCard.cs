@@ -36,6 +36,7 @@ namespace GuraGames.UI
             this.sold = sold;
 
             if (card) UpdateUI();
+            soldLayer.SetActive(sold);
         }
 
         private void UpdateUI()
@@ -43,7 +44,7 @@ namespace GuraGames.UI
             name_card.text = card.card_name;
             icon_card.sprite = card.card_icon;
             mana_card.text = card.mana_consume.ToString();
-            price_card.text = price.ToString();
+            price_card.text = $"Price: {price}";
         }
 
         public void OnClick()

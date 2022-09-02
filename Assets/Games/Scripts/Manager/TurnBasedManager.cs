@@ -2,9 +2,11 @@
 using GuraGames.Enums;
 using GuraGames.Interface;
 using GuraGames.Level;
+using GuraGames.UI;
 using MonsterLove.StateMachine;
 using Sirenix.OdinInspector;
 using System.Collections;
+using System.Collections.Generic;
 using TomGustin.GameDesignPattern;
 using UnityEngine;
 
@@ -18,9 +20,12 @@ namespace GuraGames.Manager
         private BaseCharacterSystem player;
         private LevelDataManager level;
         private DeckManager deck;
+        private TurnUI t_ui;
 
         private bool lastConditionIsEnemyExist;
         private bool can_next;
+
+        [SerializeField, ReadOnly] private List<CharacterType> turn_queue = new List<CharacterType>();
 
         protected override void OnAwake()
         {
@@ -28,11 +33,14 @@ namespace GuraGames.Manager
             player = ServiceLocator.Resolve<PlayerCharacterSystem>();
             level = ServiceLocator.Resolve<LevelDataManager>();
             deck = ServiceLocator.Resolve<DeckManager>();
+            t_ui = ServiceLocator.Resolve<TurnUI>();
             state = StateMachine<CharacterType>.Initialize(this);
         }
 
         public void StartTurnBased(CharacterType firstTurn)
         {
+            currentTurn = firstTurn;
+            UpdateTurnQueue();
             ChangeTurn(firstTurn);
         }
 
@@ -42,11 +50,39 @@ namespace GuraGames.Manager
             level.CheckEnemyClearanceActiveSubLevel();
         }
 
+        public void UpdateTurnQueue()
+        {
+            turn_queue.Clear();
+
+            var enemies = level.GetActiveSubLevelEnemies();
+
+            for (int i = 0; i < enemies.Count; i++) turn_queue.Add(CharacterType.Enemy);
+
+            if (currentTurn.Equals(CharacterType.Player)) turn_queue.Insert(0, CharacterType.Player);
+            else turn_queue.Add(CharacterType.Player);
+
+            t_ui.UpdateLengthQueueUI(turn_queue);
+        }
+
+        private void ShiftQueue()
+        {
+            if (turn_queue[0].Equals(currentTurn))
+            {
+                var last = turn_queue[0];
+                turn_queue.RemoveAt(0);
+                turn_queue.Add(last);
+            }
+
+            t_ui.UpdateQueueUI(turn_queue);
+        }
+
         [Button]
         private void ChangeTurn(CharacterType turn)
         {
+            ShiftQueue();
+
             state.ChangeState(turn);
-            currentTurn = turn;
+            currentTurn = turn;   
         }  
 
         #region Turn Based
@@ -79,6 +115,7 @@ namespace GuraGames.Manager
                 ((ITurnBased)bcs).StartTurn();
                 yield return new WaitUntil(() => can_next);
                 yield return null;
+                ShiftQueue();
             }
 
             yield return new WaitForEndOfFrame();

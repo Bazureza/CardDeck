@@ -22,12 +22,20 @@ namespace GuraGames.GameSystem
             }
         }
 
-        public Tween MoveCameraToSubLevel(int id)
+        public Tween MoveCameraToSubLevel(int id, bool force = false)
         {
             GGDebug.Console($"Sub Level ID:{id}");
             levelDataManager.ChangeActiveSubLevel(id);
             var subLevelData = levelDataManager.GetActiveSubLevelData();
-            return transform.DOMove(subLevelData.GetLevelPosition() + offset, 0.5f).SetEase(Ease.Linear);
+            return transform.DOMove(subLevelData.GetLevelPosition() + offset, force ? 0f : 0.5f).SetEase(Ease.Linear);
+        }
+
+        public Tween InitCameraToSubLevel(int id)
+        {
+            GGDebug.Console($"Sub Level ID:{id}");
+            levelDataManager.ChangeActiveSubLevel(id, false);
+            var subLevelData = levelDataManager.GetActiveSubLevelData();
+            return transform.DOMove(subLevelData.GetLevelPosition() + offset, 0f);
         }
     }
 }

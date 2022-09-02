@@ -17,6 +17,6 @@ MonoBehaviour:
   card_desc: 
   action_type: 2
   mana_consume: 3
-  card_icon: {fileID: 21300000, guid: 4dab427d9200cd2478c3d92b286df4f5, type: 3}
+  card_icon: {fileID: 21300000, guid: e6f4cd5d0ae7a4e459f1e7061b5aa0e5, type: 3}
   range_node: 2
   damage: 10

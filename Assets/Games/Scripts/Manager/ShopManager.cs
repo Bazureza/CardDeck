@@ -11,6 +11,8 @@ namespace GuraGames.Manager
     public class ShopManager : MonoBehaviour
     {
         [SerializeField] private List<ShopStock> shopStocks;
+        [SerializeField] private int heal_potion_price;
+        [SerializeField] private int heal_potion_value;
 
         private CardData selectedCard;
 
@@ -44,7 +46,30 @@ namespace GuraGames.Manager
             }
         }
 
+        private List<CardData> selected_card = new List<CardData>();
+
         private bool isBusy;
+
+        private List<string> card_buys_id = new List<string>();
+
+        public List<string> GetCardBuys { get { return card_buys_id; } }
+
+        public (int Price, int Value) HealPotion { get { return (heal_potion_price, heal_potion_value); } }
+
+        public void InitDataShop(List<string> card_buys_id)
+        {
+            print(card_buys_id.Count + "asaa");
+            this.card_buys_id.Clear();
+            this.card_buys_id.AddRange(card_buys_id);
+
+            foreach (string card_id in this.card_buys_id)
+            {
+                if (shopStocks.Exists(x => x.card.card_id.Equals(card_id)))
+                {
+                    shopStocks.Find(x => x.card.card_id.Equals(card_id)).sold = true;
+                }
+            }
+        }
 
         public void RenderShop()
         {
@@ -70,6 +95,8 @@ namespace GuraGames.Manager
                     fetched.sold = true;
                     //add to deck
                     deck.AddCardToDeck(fetched.card);
+
+                    if (!card_buys_id.Contains(fetched.card.card_id)) card_buys_id.Add(fetched.card.card_id);
                 }
 
                 return status;
@@ -81,6 +108,46 @@ namespace GuraGames.Manager
         public bool IsBusy()
         {
             return isBusy;
+        }
+
+        public void BuyHealPotion()
+        {
+            var health_full = player.CharacterData.CurrentHealthPoint == player.CharacterData.BaseHealthPoint;
+            if (health_full) return;
+
+            var status = player.RemoveCoin(heal_potion_price);
+
+            if (status)
+            {
+                player.UpdateHealth(heal_potion_value);
+            }
+        }
+
+        public void RenderDeckToRemove()
+        {
+            shop_ui.CloseShop();
+            selected_card.Clear();
+            var decks = deck.GetAllDecks;
+            shop_ui.RenderShop_RemoveCard(decks);
+            shop_ui.ActivateApplyRemoveButton(false);
+        }
+
+        public void SelectCardToRemovedList(CardData card)
+        {
+            selected_card.Add(card);
+            shop_ui.ActivateApplyRemoveButton(selected_card.Count > 0);
+        }
+
+        public void DeselectCardFromRemovedList(CardData card)
+        {
+            selected_card.Remove(card);
+            shop_ui.ActivateApplyRemoveButton(selected_card.Count > 0);
+        }
+
+        public void AcceptToRemoveCard()
+        {
+            deck.RemoveCards(selected_card);
+            RenderDeckToRemove();
         }
 
         [System.Serializable]
