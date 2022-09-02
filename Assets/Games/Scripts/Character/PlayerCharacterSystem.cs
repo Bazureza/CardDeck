@@ -34,6 +34,7 @@ namespace GuraGames.Character
         private CameraSystem cameraSystem;
         private IndicatorMovesUI imui;
         private DeckManager deckManager;
+        private GameManager gm;
 
         private bool active_turn;
 
@@ -59,6 +60,7 @@ namespace GuraGames.Character
             cameraSystem = ServiceLocator.Resolve<CameraSystem>();
             imui = ServiceLocator.Resolve<IndicatorMovesUI>();
             deckManager = ServiceLocator.Resolve<DeckManager>();
+            gm = ServiceLocator.Resolve<GameManager>();
 
             enemyLayer = LayerMask.GetMask(new string[] { "Enemy" });
         }
@@ -468,6 +470,12 @@ namespace GuraGames.Character
             base.EndTurnWorld();
             ShowInteraction(false);
             active_turn = false;
+        }
+
+        protected override void Dead()
+        {
+            base.Dead();
+            gm.Lose();
         }
     }
 }

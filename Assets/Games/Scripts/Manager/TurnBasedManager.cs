@@ -37,6 +37,11 @@ namespace GuraGames.Manager
             state = StateMachine<CharacterType>.Initialize(this);
         }
 
+        public void StopTurn()
+        {
+            state.ChangeState(CharacterType.None);
+        }
+
         public void StartTurnBased(CharacterType firstTurn)
         {
             currentTurn = firstTurn;

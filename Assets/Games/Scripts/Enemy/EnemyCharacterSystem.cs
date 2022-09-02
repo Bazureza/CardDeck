@@ -19,6 +19,7 @@ namespace GuraGames.Character
         [Header("Properties")]
         [SerializeField] private int farestNodeMove;
         [SerializeField] private DynamicGridObstacle obstacle;
+        [SerializeField] private SpriteRenderer visual;
 
         [Header("References")]
         [SerializeField] private AIDecide decider;
@@ -84,6 +85,7 @@ namespace GuraGames.Character
             var max_move =  paths.path.Count > (farestNodeMove + 1) ? (farestNodeMove + 1) : (paths.path.Count - 1);
             for (int i = 1; i < max_move; i++)
             {
+                visual.flipX = (transform.position.x > ((Vector3)paths.path[i].position).x);
                 Tween tween = transform.DOMove((Vector3)paths.path[i].position, 0.3f).SetEase(Ease.InOutCubic);
                 yield return tween.WaitForCompletion();
                 yield return null;

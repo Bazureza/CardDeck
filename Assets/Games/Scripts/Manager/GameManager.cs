@@ -18,6 +18,7 @@ namespace GuraGames.Manager
         private DeckManager deckManager;
         private CameraSystem cameraSystem;
         private ShopManager shopManager;
+        private WinLoseManager winLoseManager;
 
         protected override void OnAwake()
         {
@@ -31,6 +32,7 @@ namespace GuraGames.Manager
             deckManager = ServiceLocator.Resolve<DeckManager>();
             cameraSystem = ServiceLocator.Resolve<CameraSystem>();
             shopManager = ServiceLocator.Resolve<ShopManager>();
+            winLoseManager = ServiceLocator.Resolve<WinLoseManager>();
 
             LoadAllData();
         }
@@ -43,6 +45,34 @@ namespace GuraGames.Manager
             tbm.StartTurnBased(CharacterType.Player);
 
             SceneSystem.ReadytoLoad();
+        }
+
+        public void Lose()
+        {
+            winLoseManager.GameLose();
+            StopGame();
+        }
+
+        public void Win()
+        {
+            winLoseManager.GameWin();
+            StopGame();
+        }
+
+        public void MainMenu()
+        {
+            SceneSystem.LoadScene("MENU");
+        }
+
+        public void Retry()
+        {
+            SceneSystem.LoadScene("GAME");
+        }
+
+        private void StopGame()
+        {
+            MouseInputSystem.Active = false;
+            tbm.StopTurn();
         }
 
         private void LoadAllData()
