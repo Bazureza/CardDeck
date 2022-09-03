@@ -51,6 +51,7 @@ namespace GuraGames.Manager
         }
 
         [SerializeField, ReadOnly] private CurrentStateData currentData;
+        [SerializeField, ReadOnly] private CurrentStateData backupData;
 
         public CurrentStateData CurrentData { get { return currentData; } }
 
@@ -91,6 +92,13 @@ namespace GuraGames.Manager
         public void LoadData(out bool result)
         {
             currentData = MDSSaveSystem.Load("current_data", out result);
+            backupData = new CurrentStateData(currentData);
+        }
+
+        public void RestoreData()
+        {
+            currentData = new CurrentStateData(backupData);
+            MDSSaveSystem.Save(currentData, "current_data");
         }
     }
 }

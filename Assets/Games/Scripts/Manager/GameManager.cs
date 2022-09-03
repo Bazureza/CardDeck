@@ -6,6 +6,7 @@ using GuraGames.Enums;
 using TomGustin.GameDesignPattern;
 using GuraGames.Character;
 using GuraGames.Level;
+using TGC.MDS;
 
 namespace GuraGames.Manager
 {
@@ -61,6 +62,12 @@ namespace GuraGames.Manager
 
         public void MainMenu()
         {
+            SceneSystem.LoadScene("MENU");
+        }
+
+        public void BactToMenuAfterWin()
+        {
+            MDSSaveSystem.DeleteAllSaveData("current_data");
             SceneSystem.LoadScene("MENU");
         }
 

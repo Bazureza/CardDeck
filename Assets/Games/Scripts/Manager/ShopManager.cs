@@ -11,6 +11,7 @@ namespace GuraGames.Manager
     public class ShopManager : MonoBehaviour
     {
         [SerializeField] private List<ShopStock> shopStocks;
+        [SerializeField] private int remove_card_price;
         [SerializeField] private int heal_potion_price;
         [SerializeField] private int heal_potion_value;
 
@@ -58,7 +59,6 @@ namespace GuraGames.Manager
 
         public void InitDataShop(List<string> card_buys_id)
         {
-            print(card_buys_id.Count + "asaa");
             this.card_buys_id.Clear();
             this.card_buys_id.AddRange(card_buys_id);
 
@@ -130,24 +130,32 @@ namespace GuraGames.Manager
             var decks = deck.GetAllDecks;
             shop_ui.RenderShop_RemoveCard(decks);
             shop_ui.ActivateApplyRemoveButton(false);
+            shop_ui.UpdatePriceTotalRemoveCard(player.CollectibleData.coin, 0);
         }
 
         public void SelectCardToRemovedList(CardData card)
         {
             selected_card.Add(card);
             shop_ui.ActivateApplyRemoveButton(selected_card.Count > 0);
+            shop_ui.UpdatePriceTotalRemoveCard(player.CollectibleData.coin, remove_card_price * selected_card.Count);
         }
 
         public void DeselectCardFromRemovedList(CardData card)
         {
             selected_card.Remove(card);
             shop_ui.ActivateApplyRemoveButton(selected_card.Count > 0);
+            shop_ui.UpdatePriceTotalRemoveCard(player.CollectibleData.coin, remove_card_price * selected_card.Count);
         }
 
         public void AcceptToRemoveCard()
         {
-            deck.RemoveCards(selected_card);
-            RenderDeckToRemove();
+            var status = player.RemoveCoin(remove_card_price * selected_card.Count);
+            if (status)
+            {
+                deck.RemoveCards(selected_card);
+                RenderDeckToRemove();
+                shop_ui.UpdatePriceTotalRemoveCard(player.CollectibleData.coin, remove_card_price * selected_card.Count);
+            }
         }
 
         [System.Serializable]

@@ -24,6 +24,8 @@ namespace GuraGames.UI
         [SerializeField] private GameObject deckCardPrefabs;
         [SerializeField] private RectTransform deckParent;
         [SerializeField] private Button applyRemoveButton;
+        [SerializeField] private TextMeshProUGUI currentCoin;
+        [SerializeField] private TextMeshProUGUI priceTotalRemoveCard;
 
         private List<ShopUI_BuyCard> buyCards = new List<ShopUI_BuyCard>();
         private List<ShopUI_RemoveCard> removeCards = new List<ShopUI_RemoveCard>();
@@ -107,6 +109,19 @@ namespace GuraGames.UI
                     } else removeCards[i].gameObject.SetActive(false);
                 }
             }
+        }
+
+        public void UpdatePriceTotalRemoveCard(int current_coin, int expense_price)
+        {
+            string color_code = "black";
+
+            if (current_coin >= expense_price) color_code = "black";
+            else color_code = "red";
+
+            if (expense_price == 0) color_code = "black";
+
+            currentCoin.text = $"Current Coin: {current_coin}";
+            priceTotalRemoveCard.text = $"Price: <color={color_code}>{expense_price}</color>";
         }
 
         public void ActivateApplyRemoveButton(bool active)
