@@ -5,6 +5,7 @@ using GuraGames.UI;
 using Sirenix.OdinInspector;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using TomGustin.GameDesignPattern;
 using UnityEngine;
 using UnityEngine.Events;
@@ -14,15 +15,19 @@ namespace GuraGames.Level
 {
     public class LevelDataManager : MonoBehaviour
     {
-        [SerializeField] private string level_id;
         [SerializeField] private int start_level;
-        [SerializeField] private AreaManager area;
+        [SerializeField] private List<AreaManager> areas;
+        [SerializeField] private List<TextAsset> nodeTextPathfinding;
         [SerializeField] private UnityEvent onClearEnemy;
 
         [SerializeField, ReadOnly] private int current_subLevel;
 
         private List<SubLevelData> subLevels = new List<SubLevelData>();
-        private List<int> cleared_sublevel = new List<int>(); 
+        private List<int> cleared_sublevel = new List<int>();
+        private AreaManager active_area;
+
+        public Vector2 StartSpawnPosition { get { return active_area.GetSpawnPosition; } }
+        public string AreaID { get { return active_area.AreaID; } }
 
         private AutoSaveManager _autosave;
         private AutoSaveManager autosave
@@ -63,15 +68,39 @@ namespace GuraGames.Level
             }
         }
 
-        public void DefaultInit()
+        private void RandomizeLevel()
         {
-            subLevels = area.GetSubLevel();
-            current_subLevel = start_level;
+            var level_area = Random.Range(0, areas.Count);
+
+            active_area = areas[level_area];
+            active_area.gameObject.SetActive(true);
         }
 
-        public void InitDataLevel(List<int> cleared_sublevel)
+        private void UpdatePathfinding()
         {
-            subLevels = area.GetSubLevel();
+            AstarPath.active.data.file_cachedStartup = nodeTextPathfinding[areas.IndexOf(active_area)];
+            AstarPath.active.data.LoadFromCache();
+            AstarPath.active.Scan();
+        }
+
+        public void DefaultInit()
+        {
+            RandomizeLevel();
+            active_area.gameObject.SetActive(true);
+
+            subLevels = active_area.GetSubLevel();
+            current_subLevel = start_level;
+
+            UpdatePathfinding();
+        }
+
+        public void InitDataLevel(string area_id, List<int> cleared_sublevel)
+        {
+            active_area = areas.FirstOrDefault(x => x.AreaID.Equals(area_id));
+            active_area.gameObject.SetActive(true);
+
+            //if (!active_area) RandomizeLevel();
+            subLevels = active_area.GetSubLevel();
 
             this.cleared_sublevel.Clear();
             this.cleared_sublevel.AddRange(cleared_sublevel);
@@ -80,6 +109,8 @@ namespace GuraGames.Level
             {
                 subLevels[sublevel_id].RemoveAllEnemy();
             }
+
+            UpdatePathfinding();
         }
 
         public void UpdateIndicatorGlobal()

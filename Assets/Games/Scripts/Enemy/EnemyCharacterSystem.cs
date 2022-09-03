@@ -53,10 +53,19 @@ namespace GuraGames.Character
             dropHandler = GetComponent<DropSpawnHandler>();
         }
 
+        protected override void OnStart()
+        {
+            base.OnStart();
+            obstacle.Scan();
+        }
+
         [Button]
         protected override void StartTurnWorld()
         {
             if (onAction) return;
+            
+            base.StartTurnWorld();
+            healthUI.SetShieldIcon(BlockState.Active);
 
             StartCoroutine(DetectAround());
         }
@@ -104,18 +113,24 @@ namespace GuraGames.Character
 
             decider.RefreshFetchedAction();
             Path paths = agent.GetScannedPath();
+            decider.FetchedActionBasedOnCondition(ActionType.Block);
             if (paths.path.Count > 2) decider.FetchedActionBasedOnCondition(ActionType.Move);
-            if (paths.path.Count == 2) decider.FetchedActionBasedOnCondition(ActionType.CloseAttackLinear);
+            if (paths.path.Count == 2)
+            {
+                decider.FetchedActionBasedOnCondition(ActionType.MeleeAttack);
+                decider.FetchedActionBasedOnCondition(ActionType.AttackAndBlock);
+                decider.FetchedActionBasedOnCondition(ActionType.PiercedAttack);
+            }
             if (paths.path.Count <= 4)
             {
                 Vector3 originalPos = (Vector3)paths.path[0].position;
-                Vector3 aheadPos = (Vector3) paths.path[paths.path.Count - 1].position;
+                Vector3 aheadPos = (Vector3)paths.path[paths.path.Count - 1].position;
 
                 Vector3 offset = aheadPos - originalPos;
 
                 if (Mathf.Abs(offset.x) < 0.2f || Mathf.Abs(offset.y) < 0.2f)
                 {
-                    decider.FetchedActionBasedOnCondition(ActionType.RangeAttackLinear);
+                    decider.FetchedActionBasedOnCondition(ActionType.RangedAttack);
                 }
             }
 
@@ -130,15 +145,30 @@ namespace GuraGames.Character
                         GGDebug.Console($"{gameObject.name} is moving!");
                         yield return StartCoroutine(DoMoveThroughPath(paths));
                         break;
-                    case ActionType.RangeAttackLinear:
+                    case ActionType.RangedAttack:
                         GGDebug.Console($"{gameObject.name} is attacking: Range Attack!");
                         ((ICharacterHit)player).Hit(gameObject.name, ((AttackPatternData)action).damage);
                         break;
-                    case ActionType.CloseAttackLinear:
+                    case ActionType.MeleeAttack:
                         GGDebug.Console($"{gameObject.name} is attacking: Close Attack!");
                         ((ICharacterHit)player).Hit(gameObject.name, ((AttackPatternData)action).damage);
                         break;
+                    case ActionType.Block:
+                        GGDebug.Console($"{gameObject.name} is activate: Block Attack!");
+                        BlockState = (true, ((AttackPatternData)action).damage);
+                        break;
+                    case ActionType.AttackAndBlock:
+                        GGDebug.Console($"{gameObject.name} is attacking: Close Attack and Blocking!");
+                        ((ICharacterHit)player).Hit(gameObject.name, ((AttackPatternData)action).damage);
+                        BlockState = (true, ((AttackPatternData)action).damage);
+                        break;
+                    case ActionType.PiercedAttack:
+                        GGDebug.Console($"{gameObject.name} is attacking: Pierced Attack!");
+                        ((ICharacterHit)player).HitPierce(gameObject.name, ((AttackPatternData)action).damage);
+                        break;
                 }
+
+                healthUI.SetShieldIcon(BlockState.Active);
             } else
             {
                 GGDebug.Console("There is no action happen!");

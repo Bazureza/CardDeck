@@ -22,7 +22,9 @@ namespace GuraGames.UI
         {
             base.OnAwake();
 
-            continueButton.interactable = MDSSaveSystem.IsSaveDataAvailable("current_data", out string full_path);
+            var enable = MDSSaveSystem.IsSaveDataAvailable("current_data", out string full_path);
+            continueButton.interactable = enable;
+            continueButton.image.color = enable ? Color.white : new Color(106f/255f, 106f/255f, 106f/255f);
 
             SceneSystem.ReadytoLoad();
         }

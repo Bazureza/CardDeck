@@ -7,13 +7,19 @@ namespace GuraGames.Level
 {
     public class AreaManager : MonoBehaviour
     {
+        [SerializeField] private string area_id;
         [SerializeField] private Transform parentSubArea;
         [SerializeField] private List<SubLevelData> subLevels = new List<SubLevelData>();
+        [SerializeField] private Vector2 spawnPosition;
 
         [Header("Debug Properties")]
         [SerializeField] private bool drawGizmos;
         [SerializeField] private float areaSize;
         [SerializeField, Range(0f,1f)] private float opacity;
+
+        public string AreaID { get { return area_id; } }
+
+        public Vector2 GetSpawnPosition { get { return spawnPosition; } }
 
         public List<SubLevelData> GetSubLevel()
         {

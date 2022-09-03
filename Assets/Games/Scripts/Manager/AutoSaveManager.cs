@@ -64,6 +64,7 @@ namespace GuraGames.Manager
 
         private void SyncData()
         {
+            currentData.level_id = level.AreaID;
             currentData.position = player.transform.position;
             currentData.current_sublevel_id = level.GetCurrentSubLevelID();
             currentData.health = player.CharacterData.CurrentHealthPoint;

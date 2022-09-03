@@ -27,6 +27,8 @@ namespace GuraGames.Character
             }
         }
 
+        protected (bool Active, int Amount) BlockState;
+
         protected bool onAction;
         protected bool onScan;
 
@@ -68,7 +70,7 @@ namespace GuraGames.Character
 
         protected virtual void StartTurnWorld()
         {
-
+            BlockState = (false, 0);
         }
 
         protected virtual void NextTurnWorld()
@@ -112,6 +114,20 @@ namespace GuraGames.Character
         }
 
         void ICharacterHit.Hit(string sender, int damage)
+        {
+            GGDebug.Console($"{sender} is hitting {gameObject.name}! -{damage}HP");
+            if (BlockState.Active)
+            {
+                var calculatedDamage = Mathf.Min(0, Mathf.Abs(BlockState.Amount) - Mathf.Abs(damage));
+                GGDebug.Console($"Attack blocking: {calculatedDamage}");
+                Hit(-Mathf.Abs(calculatedDamage));
+
+                BlockState = (false, 0);
+            }
+            else Hit(-damage);
+        }
+
+        void ICharacterHit.HitPierce(string sender, int damage)
         {
             GGDebug.Console($"{sender} is hitting {gameObject.name}! -{damage}HP");
             Hit(-damage);

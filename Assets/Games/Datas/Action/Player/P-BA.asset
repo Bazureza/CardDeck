@@ -12,11 +12,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 74d05d35b9ab3d04eb9e433558d5b250, type: 3}
   m_Name: P-BA
   m_EditorClassIdentifier: 
-  card_id: p-beam_attack
-  card_name: Beam Attack
-  card_desc: Deal damage 30
+  card_id: p-bow_attack
+  card_name: Ranged Bow
+  card_desc: Deal damage 15
   action_type: 2
-  mana_consume: 3
+  mana_consume: 2
   card_icon: {fileID: 21300000, guid: e6f4cd5d0ae7a4e459f1e7061b5aa0e5, type: 3}
   range_node: 2
-  damage: 30
+  damage: 15

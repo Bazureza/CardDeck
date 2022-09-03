@@ -7,6 +7,7 @@ using TomGustin.GameDesignPattern;
 using GuraGames.Character;
 using GuraGames.Level;
 using TGC.MDS;
+using Sirenix.OdinInspector;
 
 namespace GuraGames.Manager
 {
@@ -44,7 +45,7 @@ namespace GuraGames.Manager
 
             MouseInputSystem.Active = true;
             tbm.StartTurnBased(CharacterType.Player);
-
+            
             SceneSystem.ReadytoLoad();
         }
 
@@ -89,7 +90,7 @@ namespace GuraGames.Manager
 
             if (result)
             {
-                level.InitDataLevel(data.sublevel_id);
+                level.InitDataLevel(data.level_id, data.sublevel_id);
                 deckManager.InitDataDeck(data.card_metadata);
                 player.InitDataPlayer(data.position, data.health, data.coin);
                 cameraSystem.InitCameraToSubLevel(data.current_sublevel_id);
@@ -99,6 +100,7 @@ namespace GuraGames.Manager
             else
             {
                 level.DefaultInit();
+                cameraSystem.InitCameraToSubLevel(0);
                 player.DefaultInit();
                 deckManager.DefaultInit();
             }

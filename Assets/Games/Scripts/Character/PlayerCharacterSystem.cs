@@ -91,6 +91,7 @@ namespace GuraGames.Character
             characterData.SetHealth();
             characterData.SetMana();
             characterData.SetMove();
+            transform.position = level.StartSpawnPosition;
 
             h_ui.UpdateHealth(characterData.BaseHealthPoint, characterData.CurrentHealthPoint);
             s_ui.UpdateMove(characterData.CurrentMovePoint);
@@ -133,19 +134,29 @@ namespace GuraGames.Character
         {
             switch (actionCard.action_type)
             {
-                case ActionType.RangeAttackLinear:
+                case ActionType.RangedAttack:
                     GGDebug.Console($"Player using Action Card: {actionCard.name} with {actionCard.action_type.ToString()}");
                     ShowInteraction(false);
                     ShowIndicator("beam", true);
 
                     currentAction = actionCard.action_type;
                     break;
-                case ActionType.CloseAttackLinear:
+                case ActionType.AttackAndBlock:
+                case ActionType.PiercedAttack:
+                case ActionType.HeavyAttack:
+                case ActionType.MeleeAttack:
                     GGDebug.Console($"Player using Action Card: {actionCard.name} with {actionCard.action_type.ToString()}");
                     ShowInteraction(false);
                     ShowIndicator("sword", true);
 
                     currentAction = actionCard.action_type;
+                    break;
+                case ActionType.Block:
+                    GGDebug.Console($"Player using Action Card: {actionCard.name} with {actionCard.action_type.ToString()}");
+                    ShowInteraction(false);
+                    currentAction = actionCard.action_type;
+
+                    new UnityTaskManager.Task(DoAttackScan(transform.position));
                     break;
             }
         }
@@ -210,7 +221,7 @@ namespace GuraGames.Character
 
             switch (currentAction)
             {
-                case ActionType.RangeAttackLinear:
+                case ActionType.RangedAttack:
                     var rangeAttackData = ((AttackPatternData)deckManager.CurrentUsedCard);
 
                     nodeAttackPosition = agent.GetNodePositionOn(attack_position);
@@ -236,7 +247,10 @@ namespace GuraGames.Character
                         }
                     }
                     break;
-                case ActionType.CloseAttackLinear:
+                case ActionType.AttackAndBlock:
+                case ActionType.PiercedAttack:
+                case ActionType.HeavyAttack:
+                case ActionType.MeleeAttack:
                     var normalAttackData = ((AttackPatternData)deckManager.CurrentUsedCard);
 
                     nodeAttackPosition = agent.GetNodePositionOn(attack_position);
@@ -261,9 +275,20 @@ namespace GuraGames.Character
                             StartCoroutine(DoNormalAttack(nodeAttackPosition, normalAttackData));
                         }
                     }
+
+                    if (currentAction.Equals(ActionType.AttackAndBlock)) BlockState = (true, ((AttackPatternData)deckManager.CurrentUsedCard).damage);
+                    break;
+                case ActionType.Block:
+                    ShowInteraction(false);
+                    characterData.UpdateMana(-deckManager.CurrentUsedCard.mana_consume);
+                    s_ui.UpdateMana(characterData.CurrentManaPoint);
+                    BlockState = (true, ((AttackPatternData) deckManager.CurrentUsedCard).damage);
+                    deckManager.ReleaseUsedCard();
+                    CheckingTurnCondition();
                     break;
             }
-            
+
+            h_ui.SetShieldIcon(BlockState.Active);
             onScan = false;
         }
 
@@ -325,7 +350,10 @@ namespace GuraGames.Character
             Collider2D coll = Physics2D.OverlapPoint(attack_position, enemyLayer);
             if (coll)
             {
-                coll.GetComponent<ICharacterHit>().Hit("Player", attackData.damage);
+                if (deckManager.CurrentUsedCard.action_type.Equals(ActionType.PiercedAttack)) coll.GetComponent<ICharacterHit>().HitPierce("Player", attackData.damage);
+                else coll.GetComponent<ICharacterHit>().Hit("Player", attackData.damage);
+
+                if (deckManager.CurrentUsedCard.action_type.Equals(ActionType.AttackAndBlock)) BlockState = (true, ((AttackPatternData)deckManager.CurrentUsedCard).damage);
             }
 
             yield return null;
@@ -349,8 +377,11 @@ namespace GuraGames.Character
             hits = Physics2D.LinecastAll(transform.position, attack_position, enemyLayer);
 
             foreach (RaycastHit2D hit in hits)
-            { 
-                if (hit.collider) hit.collider.GetComponent<ICharacterHit>().Hit("Player", attackData.damage);
+            {
+                if (hit.collider)
+                {
+                    hit.collider.GetComponent<ICharacterHit>().Hit("Player", attackData.damage);
+                }
             }
 
             yield return null;
@@ -441,6 +472,7 @@ namespace GuraGames.Character
         {
             if (!level.IsClearActiveSubLevel()) deckManager.FillHandCard();
             base.StartTurnWorld();
+            h_ui.SetShieldIcon(BlockState.Active);
 
             active_turn = true;
             currentAction = ActionType.Move;
